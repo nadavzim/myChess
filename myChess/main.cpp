@@ -10,11 +10,11 @@ int main() {
 	SetConsoleOutputCP(CP_UTF8);
 	SetConsoleFontSize(30);
 
-	cout << "Enter \"-1\" to exit\n";
+	cout << "Enter \"-1\" to exit\nEnter 'z' to undo the last move and 'y' to redo the next move\n";
 	string move = "\0";
 	bool finished = false;
 	GameManger game;
-	cout << "please enter a move:\ncurrent piece location- x1y1 and destenation- x2y2\nfor exmple: e2e4\n";
+	cout << "please enter a move:\ncurrent piece location- x1y1 and destination- x2y2\nfor example: e2e4\n\n";
 	while (!finished)
 	{
 		cin >> move;

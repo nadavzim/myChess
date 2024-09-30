@@ -12,7 +12,7 @@ int main() {
 
 	cout << "Enter \"-1\" to exit\n";
 	string move = "\0";
-	bool turn = false, finished = false;
+	bool finished = false;
 	GameManger game;
 	cout << "please enter a move:\ncurrent piece location- x1y1 and destenation- x2y2\nfor exmple: e2e4\n";
 	while (!finished)
@@ -20,10 +20,13 @@ int main() {
 		cin >> move;
 		if (move == "-1")
 			return 0;
-		if (!game.makeMove(move, turn))
+		else if (move == "z" || move == "Z")
+			game.undo();
+		else if (move == "y" || move == "Y")
+			game.redo();
+		else if (!game.makeMove(move))
 			cout << "invalid move.\n";
-		else
-			turn = !turn;
+
 	}
 }
 

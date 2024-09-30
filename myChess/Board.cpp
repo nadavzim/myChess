@@ -1,10 +1,13 @@
 #include "Board.h"
 #include <string>
+#include "GameLogger.h"
 
-//Board::Board() {
-	//picecs.push_back(bPieces);  // Add black pieces
-	//picecs.push_back(wPieces);  // Add white pieces
-//}
+
+/*This function implement the Singleton design pattern, ensures that only one instance of  Board exist.*/
+static Board& getInstance() {
+	static Board instance;
+	return instance;
+}
 
 void Board::print() {
 	cout << endl;
@@ -28,32 +31,25 @@ void Board::print() {
 	cout << endl;
 }
 
-// a
+
 void Board::addPiece(char type, int x, int y, bool isWhite) {
 	Piece* piece = nullptr;
-	switch (type) {
-	case 'P': piece = new Pawn(x, y, isWhite); break;
-	case 'R': piece = new Rook(x, y, isWhite); break;
-	case 'N': piece = new Knight(x, y, isWhite); break;
-	case 'B': piece = new Bishop(x, y, isWhite); break;
-	case 'Q': piece = new Queen(x, y, isWhite); break;
-	case 'K': piece = new King(x, y, isWhite); break;
-	}
+	piece = PieceFactory::createPiece(type, x, y, isWhite);	 // Use the factory method
 	if (piece != nullptr) {
 		if (isWhite) {
-			picecs[0].push_back(piece);
+			pieces[0].push_back(piece);
 		}
 		else {
-			picecs[1].push_back(piece);
+			pieces[1].push_back(piece);
 		}
 	}
 }
 
-int Board::chrToInt(char cor)
+int Board::charToIndex(char cor) const
 {
 	if (cor <= '8' && cor >= '1')
 		return cor - '0';
-	else if (cor >= 'A' && cor <= 'H')
+	else if (toupper(cor) >= 'A' && toupper(cor) <= 'H')
 		return cor - 'A' + 1;
 	else
 		return -1;
@@ -68,25 +64,16 @@ void Board::init() {
 	}
 
 	// Black Pieces
-	addPiece('R', 1, 1, false);
-	addPiece('R', 8, 1, false);
-	addPiece('N', 2, 1, false);
-	addPiece('N', 7, 1, false);
-	addPiece('B', 3, 1, false);
-	addPiece('B', 6, 1, false);
-	addPiece('Q', 4, 1, false);
-	addPiece('K', 5, 1, false);
+	addPiece('R', 1, 1, false);	addPiece('R', 8, 1, false);
+	addPiece('N', 2, 1, false);	addPiece('N', 7, 1, false);
+	addPiece('B', 3, 1, false);	addPiece('B', 6, 1, false);
+	addPiece('Q', 4, 1, false);	addPiece('K', 5, 1, false);
 
 	// White Pieces
-	addPiece('R', 1, 8, true);
-	addPiece('R', 8, 8, true);
-	addPiece('N', 2, 8, true);
-	addPiece('N', 7, 8, true);
-	addPiece('B', 3, 8, true);
-	addPiece('B', 6, 8, true);
-	addPiece('Q', 4, 8, true);
-	addPiece('K', 5, 8, true);
-
+	addPiece('R', 1, 8, true);	addPiece('R', 8, 8, true);
+	addPiece('N', 2, 8, true);	addPiece('N', 7, 8, true);
+	addPiece('B', 3, 8, true);	addPiece('B', 6, 8, true);
+	addPiece('Q', 4, 8, true);	addPiece('K', 5, 8, true);
 
 	this->print();
 }
@@ -97,7 +84,7 @@ Piece* Board::findPiece(char x, char y) {
 
 //  findPiece to return pieces in specific (x,y) regardless of their alive status 
 Piece* Board::findPiece(int x, int y) {
-	for (auto& pieceList : picecs) {
+	for (auto& pieceList : pieces) {
 		for (Piece* v : pieceList) {
 			if (v->getxcor() == x && v->getycor() == y) {
 				return v;  // Return piece 
@@ -110,8 +97,8 @@ Piece* Board::findPiece(int x, int y) {
 
 bool Board::makeMove(string src, string dst, bool turn) {
 	// Convert board positions from strings to integer coordinates.
-	int xSrc = chrToInt(src[0]), ySrc = chrToInt(src[1]);
-	int xDst = chrToInt(dst[0]), yDst = chrToInt(dst[1]);
+	int xSrc = charToIndex(toupper(src[0])), ySrc = charToIndex(src[1]);
+	int xDst = charToIndex(toupper(dst[0])), yDst = charToIndex(dst[1]);
 
 	// Find pieces at source and destination positions.
 	Piece* srcPiece = findPiece(xSrc, ySrc);
@@ -140,6 +127,7 @@ bool Board::makeMove(string src, string dst, bool turn) {
 		}
 		else {
 			dstPiece->setDead();
+			notifyPieceCaptured(dstPiece);  // Notify observer that a piece was captured
 		}
 	}
 
@@ -177,4 +165,22 @@ bool Board::clearPath(int xSrc, int ySrc, int xDst, int yDst)
 	}
 
 	return true;  // Path is clear
+}
+void Board::notifyPieceCaptured(Piece* capturedPiece) {
+	for (ChessObserver* observer : observers)
+		observer->onPieceCaptured(capturedPiece);
+}
+
+Memento Board::saveState() const
+{
+	return Memento(pieces[0], pieces[1]);
+}
+
+/**
+* Restores the state of the board using the provided Memento object.
+* @param memento The Memento object containing the saved state of the board.
+*/
+void Board::restoreState(const Memento &memento) {
+	pieces[0] = memento.getWhitePieces();
+	pieces[1] = memento.getBlackPieces();
 }

@@ -10,4 +10,6 @@ public:
 	string getIcon() override {
 		return color ? "♕" : "♛"; // White queen: ♕, Black queen: ♛
 	}
+	Queen* clone() const override;
+
 };

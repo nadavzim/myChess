@@ -14,3 +14,11 @@ bool Queen::validMove(int xDst, int yDst, bool isKill) {
         return true;
 }
 
+Queen* Queen::clone() const {
+    Queen* temp = new  Queen(xcor, ycor, color);
+    if (!alive)
+        temp->setDead();
+    return temp;
+
+}
+
